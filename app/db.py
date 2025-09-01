@@ -1,18 +1,22 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from .models import Base
-import os
 
-# دیتابیس SQLite (برای شروع ساده)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./numira.db")
+# app/db.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+# SQLite for development (single file DB)
+DATABASE_URL = "sqlite:///./database.db"
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+    connect_args={"check_same_thread": False},  # required by SQLite for multi-threads
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-# تابع ساخت جدول‌ها
-def init_db():
-    Base.metadata.create_all(bind=engine)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
