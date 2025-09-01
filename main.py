@@ -1,14 +1,31 @@
-import asyncio
-from app.bot import bot
-from app.db import init_db
+# main.py
+import logging
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-async def main():
-    # Step 1: Init database
-    await init_db()
+from app import config
 
-    # Step 2: Start bot
-    print("Bot is starting...")
-    await bot.infinity_polling()
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    text = (
+        f"👋 Hello {user.first_name}!\n\n"
+        "Welcome to Numira XY Bot.\n"
+        "Use the menu below to get started."
+    )
+    await update.message.reply_text(text)
+
+def main():
+    app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+
+    logging.info("Bot is running...")
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
